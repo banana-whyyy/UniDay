@@ -16,6 +16,22 @@ async def fetch_schedule_html(group: str, target_date: date) -> str:
         return response.text
 
 
+def parse_date(target_date: str) -> date:
+    months = {
+    "января": 1, "февраля": 2, "марта": 3,
+    "апреля": 4, "мая": 5, "июня": 6,
+    "июля": 7, "августа": 8, "сентября": 9,
+    "октября": 10, "ноября": 11, "декабря": 12
+    }
+
+    day_text, months_text, year_text = target_date.split()
+    return date(
+        year=int(year_text),
+        month=months[months_text],
+        day=int(day_text)
+    )
+
+
 def parse_schedule(html: str):
     soup = BeautifulSoup(html, "html.parser")
     schedule = soup.select_one("div.table")
@@ -30,7 +46,7 @@ def parse_schedule(html: str):
         current_time = None
 
         day_data = {
-            "date": date_text,
+            "date": parse_date(date_text),
             "lessons": [],
         }
 
