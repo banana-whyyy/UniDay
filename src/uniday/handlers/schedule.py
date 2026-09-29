@@ -5,7 +5,7 @@ from aiogram.types import Message
 from datetime import datetime, timezone, timedelta
 from ..db.users import get_user
 
-from ..schedule.service import get_lessons_for_date
+from ..schedule.service import get_lessons_for_date, format_lessons
 
 
 router = Router()
@@ -35,11 +35,4 @@ async def command_today(message: Message):
         await message.answer("На сегодня пар нет")
         return
 
-    lines = []
-    for lesson in lessons:
-        lines.append(
-            f"{lesson["time"]} - {lesson["title"]}\n"
-            f"ауд. {lesson["auditorium"]}, {lesson["teacher"]}"
-        )
-
-    await message.answer("\n\n".join(lines))
+    await message.answer(format_lessons(lessons))
