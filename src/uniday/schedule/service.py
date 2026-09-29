@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from .parser import parse_schedule
 from .client import fetch_schedule_html
 
@@ -41,3 +41,24 @@ def format_lessons(lessons: list[dict]) -> str:
             f"ауд. {lesson["auditorium"]}, {lesson["teacher"]}"
         )
     return "\n\n".join(lines)
+
+
+async def get_lessons_for_period(
+    group: str, 
+    subgroup: int, 
+    period: int,
+    target_date: date,
+) -> list[dict] | None:
+    html = await fetch_schedule_html(group, target_date)
+    days = parse_schedule(html) 
+
+    data = []
+    for offset in range(period):
+        current_date = target_date + timedelta(days=offset)
+        lessons = choose_day_and_lessons(days, current_date, group, subgroup)
+        if lessons is None:
+            return None
+
+        data.append({"date": current_date, "lessons": lessons})
+
+    return data
