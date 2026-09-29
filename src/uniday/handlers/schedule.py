@@ -5,9 +5,7 @@ from aiogram.types import Message
 from datetime import datetime, timezone, timedelta
 from ..db.users import get_user
 
-from ..schedule.client import fetch_schedule_html
-from ..schedule.parser import parse_schedule
-from ..schedule.service import choose_day_and_lessons
+from ..schedule.service import get_lessons_for_date
 
 
 router = Router()
@@ -26,10 +24,8 @@ async def command_today(message: Message):
     moscow_now = datetime.now(moscow_tz)
     today = moscow_now.date()
 
-    html = await fetch_schedule_html(group_name, today)
 
-    days = parse_schedule(html)
-    lessons = choose_day_and_lessons(days, today, group_name, subgroup)
+    lessons = await get_lessons_for_date(group_name, subgroup, today)
 
     if lessons is None:
         await message.answer("Расписание на сегодня получить не удалось")

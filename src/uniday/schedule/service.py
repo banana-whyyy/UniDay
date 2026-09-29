@@ -1,4 +1,6 @@
 from datetime import date
+from .parser import parse_schedule
+from .client import fetch_schedule_html
 
 
 
@@ -23,3 +25,10 @@ def choose_day_and_lessons(
 
     return None
 
+
+
+async def get_lessons_for_date(group: str, subgroup: int, target_date: date) -> list[dict] | None:
+    html = await fetch_schedule_html(group, target_date)
+    days = parse_schedule(html)   
+    return choose_day_and_lessons(days, target_date, group, subgroup)
+    
