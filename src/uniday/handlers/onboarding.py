@@ -7,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 
 import re
 from ..keyboards.inline import choose_subgroup_keyboard
+from ..db.users import save_user
 
 
 
@@ -52,8 +53,12 @@ async def receive_subgroup(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     group = data["group"]
 
+    await save_user(callback.from_user.id, group, subgroup)
+    
     await callback.message.edit_text(f"Принял, группа {group}, подгруппа {subgroup}")
     await callback.answer()
+
+    await state.clear()
 
 
 def group_validator(group: str) -> bool:

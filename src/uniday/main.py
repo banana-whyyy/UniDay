@@ -3,9 +3,12 @@ import asyncio
 
 from .config import settings
 from .handlers.onboarding import router
+from .db.users import init_db
 
 
 async def main():
+    await init_db()
+
     token = settings.bot_token
 
 
