@@ -30,3 +30,14 @@ async def save_user(telegram_id: int, group_name: str, subgroup: int):
         """, (telegram_id, group_name, subgroup))
 
         await db.commit()
+
+
+async def get_user(telegram_id: int):
+    async with aiosqlite.connect(db_path) as db:
+        cursor = await db.execute("""
+            SELECT group_name, subgroup
+            FROM users WHERE telegram_id = ?
+        """, (telegram_id,))
+
+        row = await cursor.fetchone()
+        return row

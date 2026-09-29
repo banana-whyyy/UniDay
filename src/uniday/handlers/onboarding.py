@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 
 import re
 from ..keyboards.inline import choose_subgroup_keyboard
-from ..db.users import save_user
+from ..db.users import save_user, get_user
 
 
 
@@ -22,9 +22,13 @@ class Registration(StatesGroup):
 
 @router.message(Command("start"))
 async def command_start(message: Message, state: FSMContext):
-    await state.set_state(Registration.waiting_for_group)
-    await message.answer("Привет! Напиши свою группу в виде\nИС2-251-ОБ")
-
+    user = await get_user(message.from_user.id)
+    if user is None:
+        await state.set_state(Registration.waiting_for_group)
+        await message.answer("Привет! Напиши свою группу в виде\nИС2-251-ОБ")
+    else:
+        group_name, subgroup = user
+        await message.answer(f"Твоя группа — {group_name}, подгруппа — {subgroup}")
 
 @router.message(Registration.waiting_for_group)
 async def receive_group(message: Message, state: FSMContext):
