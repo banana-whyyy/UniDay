@@ -1,5 +1,7 @@
 from aiogram import Bot, Dispatcher
 import asyncio
+import logging
+import sys
 
 from .config import settings
 from .handlers.onboarding import router as onboarding_router
@@ -7,7 +9,11 @@ from .handlers.schedule import router as schedule_router
 from .db.users import init_db
 
 
+logger = logging.getLogger(__name__)
+
+
 async def main():
+    logger.info("Инициализация базы данных...")
     await init_db()
 
     token = settings.bot_token
@@ -19,8 +25,18 @@ async def main():
     dp.include_router(onboarding_router)
     dp.include_router(schedule_router)
 
+    logger.info("Запуск polling...")
     await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            stream=sys.stdout, 
+        )
+
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logging.info("Бот остановлен пользователем")
