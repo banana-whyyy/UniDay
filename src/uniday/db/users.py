@@ -15,6 +15,15 @@ async def init_db():
                     )
                 )
         """)
+        await db.execute("PRAGMA foreign_keys = ON")
+
+        await db.execute("""
+                CREATE TABLE IF NOT EXISTS blocked_lessons (
+                    telegram_id INTEGER NOT NULL REFERENCES users(telegram_id),
+                    lesson_title TEXT NOT NULL,
+                    PRIMARY KEY (telegram_id, lesson_title)
+                )
+        """)
 
         await db.commit()
 
