@@ -1,0 +1,2 @@
+class ScheduleParseError(Exception):
+    pass

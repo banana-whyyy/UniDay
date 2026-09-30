@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup
 from datetime import date
 
+from .exceptions import ScheduleParseError
+
 
 def parse_date(target_date: str) -> date:
     months = {
@@ -10,13 +12,18 @@ def parse_date(target_date: str) -> date:
     "октября": 10, "ноября": 11, "декабря": 12
     }
 
-    day_text, months_text, year_text = target_date.split()
-    return date(
-        year=int(year_text),
-        month=months[months_text],
-        day=int(day_text)
-    )
-
+    try:
+        day_text, months_text, year_text = target_date.split()
+        return date(
+                year=int(year_text),
+                month=months[months_text],
+                day=int(day_text)
+            )
+    except (ValueError, KeyError) as exc:
+        raise ScheduleParseError(
+            f"Не удалось разобрать дату: {target_date!r}"
+        ) from exc
+    
 
 
 def parse_schedule(html: str):
@@ -24,12 +31,17 @@ def parse_schedule(html: str):
     schedule = soup.select_one("div.table")
 
     if schedule is None:
-        raise ValueError("В ответе нет таблицы расписания")
+        raise ScheduleParseError("В ответе нет таблицы расписания")
 
     days = []
 
     for day in schedule.find_all("div", recursive=False):
-        date_text = day.find("strong").get_text(strip=True)
+        date_element = day.find("strong")
+        if date_element is None:
+            raise ScheduleParseError("В блоке дня отсутствует дата")
+        
+
+        date_text = date_element.get_text(strip=True)
         current_time = None
 
         day_data = {
@@ -55,7 +67,7 @@ def parse_schedule(html: str):
             ]
 
             if len(parts) < 4:
-                raise ValueError(f"Не удалось разобрать занятие: {parts}")
+                raise ScheduleParseError(f"Не удалось разобрать занятие: {parts}")
 
             subgroup = parts[1] if parts[1] in ("1 п.г.", "2 п.г.") else None
             if subgroup is not None:
