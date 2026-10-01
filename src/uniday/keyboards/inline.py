@@ -8,3 +8,26 @@ def choose_subgroup_keyboard():
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
+
+
+def blocked_lessons_keyboard():
+    buttons = [
+        [InlineKeyboardButton(text="Добавить занятие", callback_data="add_block")],
+        [InlineKeyboardButton(text="Удалить из списка", callback_data="remove_block")],
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+def block_titles_keyboard(titles: list[str]):
+    buttons = []
+    for index, title in enumerate(titles):
+        buttons.append([
+            InlineKeyboardButton(
+                text=title,
+                callback_data=f"block_add:{index}",
+            )
+        ])
+        
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
