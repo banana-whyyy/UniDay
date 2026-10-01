@@ -8,7 +8,7 @@ import httpx
 import logging
 
 from ..db.users import get_user
-from ..db.blocked_lessons import get_blocked_lessons, add_blocked_lesson
+from ..db.blocked_lessons import get_blocked_lessons, add_blocked_lesson, remove_blocked_lesson
 
 from ..schedule.service import get_lessons_for_period
 from ..schedule.exceptions import ScheduleParseError
@@ -100,7 +100,7 @@ async def add_block_button(callback: CallbackQuery, state: FSMContext):
 
     selection_message = await callback.message.answer(
         "Выбери занятие для исключения",
-        reply_markup=block_titles_keyboard(titles),
+        reply_markup=block_titles_keyboard(titles, "add"),
     )
     await state.update_data(
         block_titles=titles,
@@ -110,7 +110,7 @@ async def add_block_button(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data.startswith("block_add:"))
-async def block_handler(callback: CallbackQuery, state: FSMContext):
+async def block_add_handler(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     titles = data.get("block_titles")
 
@@ -139,5 +139,58 @@ async def block_handler(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(
         f"Занятие добавлено в список исключений:\n\n{titles[index]}",
+        reply_markup=blocked_lessons_keyboard(),
+    )
+
+
+@router.callback_query(F.data == "remove_block")
+async def remove_block_button(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+
+    blocked_lessons = await get_blocked_lessons(callback.from_user.id)
+    if blocked_lessons == []:
+        await callback.message.answer("Заблокированные занятия отсутствуют")
+        return
+
+    selection_message = await callback.message.answer(
+        "Выбери занятие для удаления из списка",
+        reply_markup=block_titles_keyboard(blocked_lessons, "remove"),
+    )
+    await state.update_data(
+        block_titles=blocked_lessons,
+        block_message_id=selection_message.message_id,
+    )
+
+
+@router.callback_query(F.data.startswith("block_remove:"))
+async def block_remove_handler(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    titles = data.get("block_titles")
+
+    if titles is None:
+        await callback.answer("Выбор устарел, открой /blocked заново")
+        return
+
+    if data.get("block_message_id") != callback.message.message_id:
+        await callback.answer("Выбор устарел, открой /blocked заново")
+        return
+
+    try:
+        index = int(callback.data.split(":")[-1])
+    except ValueError:
+        await callback.answer("Некорректный выбор")
+        return
+
+    if not 0 <= index < len(titles):
+        await callback.answer("Некорректный выбор")
+        return
+
+    await remove_blocked_lesson(callback.from_user.id, titles[index])
+    await state.update_data(block_titles=None, block_message_id=None)
+
+    await callback.answer("Занятие удалено из блока")
+
+    await callback.message.edit_text(
+        f"Занятие удалено из списка исключений:\n\n{titles[index]}",
         reply_markup=blocked_lessons_keyboard(),
     )

@@ -19,13 +19,14 @@ def blocked_lessons_keyboard():
     return keyboard
 
 
-def block_titles_keyboard(titles: list[str]):
+# Решил переиспользовать клаву для block_add: и block_remove: 
+def block_titles_keyboard(titles: list[str], action: str):
     buttons = []
     for index, title in enumerate(titles):
         buttons.append([
             InlineKeyboardButton(
                 text=title,
-                callback_data=f"block_add:{index}",
+                callback_data=f"block_{action}:{index}",
             )
         ])
         
