@@ -4,8 +4,7 @@ import logging
 import sys
 
 from .config import settings
-from .handlers.onboarding import router as onboarding_router
-from .handlers.schedule import router as schedule_router
+from .handlers import onboarding, schedule, blocked_lessons
 from .db.users import init_db
 
 
@@ -22,8 +21,9 @@ async def main():
     dp = Dispatcher()
     bot = Bot(token=token)
 
-    dp.include_router(onboarding_router)
-    dp.include_router(schedule_router)
+    dp.include_router(onboarding.router)
+    dp.include_router(schedule.router)
+    dp.include_router(blocked_lessons.router)
 
     logger.info("Запуск polling...")
     await dp.start_polling(bot)
@@ -36,7 +36,6 @@ if __name__ == "__main__":
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
             stream=sys.stdout, 
         )
-
         asyncio.run(main())
     except KeyboardInterrupt:
         logging.info("Бот остановлен пользователем")
