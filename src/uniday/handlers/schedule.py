@@ -7,8 +7,14 @@ import logging
 
 from datetime import datetime, timezone, timedelta
 from ..db.users import get_user
+from ..db.blocked_lessons import get_blocked_lessons
 
-from ..schedule.service import get_lessons_for_date, format_lessons, get_lessons_for_period
+from ..schedule.service import (
+    get_lessons_for_date, 
+    format_lessons, 
+    get_lessons_for_period,
+    filter_blocked_lessons,
+)
 from ..schedule.exceptions import ScheduleParseError
 
 
@@ -60,6 +66,13 @@ async def command_today(message: Message):
         await message.answer("На сегодня пар нет")
         return
 
+    blocked_titles = set(await get_blocked_lessons(message.from_user.id))
+    lessons = filter_blocked_lessons(lessons, blocked_titles)
+
+    if not lessons:
+        await message.answer("Нет занятий с учётом исключений")
+        return
+
     await message.answer(format_lessons(lessons))
 
 
@@ -103,6 +116,13 @@ async def command_tomorrow(message: Message):
 
     if lessons == []:
         await message.answer("На завтра пар нет")
+        return
+
+    blocked_titles = set(await get_blocked_lessons(message.from_user.id))
+    lessons = filter_blocked_lessons(lessons, blocked_titles)
+
+    if not lessons:
+        await message.answer("Нет занятий с учётом исключений")
         return
 
     await message.answer(format_lessons(lessons))
@@ -153,12 +173,16 @@ async def command_week(message: Message):
         )
 
     blocks = []
+    blocked_titles = set(await get_blocked_lessons(message.from_user.id))
+
     for day in days:
         day_date = day["date"]
-        lessons = day["lessons"]
+        lessons = filter_blocked_lessons(day["lessons"], blocked_titles)
 
         if lessons:
             schedule_text = format_lessons(lessons)
+        elif day["lessons"]:
+            schedule_text = "Все занятия исключены"
         else: 
             schedule_text = "Пар нет"
 

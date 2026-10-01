@@ -62,3 +62,17 @@ async def get_lessons_for_period(
         data.append({"date": current_date, "lessons": lessons})
 
     return data
+
+
+def filter_blocked_lessons(
+    lessons: list[dict],
+    blocked_titles: set[str],
+) -> list[dict]:
+    result = []
+
+    for lesson in lessons:
+        if lesson["title"] in blocked_titles:
+            continue
+        result.append(lesson)
+        
+    return result
