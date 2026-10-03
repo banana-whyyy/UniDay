@@ -25,6 +25,37 @@ async def init_db():
                 )
         """)
 
+        await db.execute("""
+                CREATE TABLE IF NOT EXISTS reminders (
+                    id INTEGER PRIMARY KEY,
+                    telegram_id INTEGER NOT NULL REFERENCES users(telegram_id),
+                    text TEXT NOT NULL,
+                    mode TEXT NOT NULL CHECK (
+                        mode IN ('fixed', 'before_first_lesson')
+                    ),
+                    time_minutes INTEGER,
+                    offset_minutes INTEGER,
+                    is_enabled INTEGER NOT NULL DEFAULT 1 CHECK (
+                        is_enabled IN (0, 1)
+                    ),
+                    CHECK (
+                        (
+                            mode = 'fixed'
+                            AND time_minutes IS NOT NULL
+                            AND time_minutes BETWEEN 0 AND 1439
+                            AND offset_minutes IS NULL
+                        )
+                        OR
+                        (
+                            mode = 'before_first_lesson'
+                            AND offset_minutes IS NOT NULL
+                            AND offset_minutes > 0
+                            AND time_minutes IS NULL
+                        )
+                    )
+                )
+        """)
+
         await db.commit()
 
 
