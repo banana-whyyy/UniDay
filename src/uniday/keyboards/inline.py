@@ -32,3 +32,21 @@ def block_titles_keyboard(titles: list[str], action: str):
         
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
+
+
+def reminders_keyboard():
+    buttons = [
+        [InlineKeyboardButton(text="Добавить напоминание", callback_data="add_reminder")],
+        [InlineKeyboardButton(text="Удалить напоминание", callback_data="remove_reminder")],
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+def reminder_mode_keyboard():
+    buttons = [
+        [InlineKeyboardButton(text="В указанное время", callback_data="reminder_mode:fixed")],
+        [InlineKeyboardButton(text="До первой пары", callback_data="reminder_mode:before_first_lesson")],
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
