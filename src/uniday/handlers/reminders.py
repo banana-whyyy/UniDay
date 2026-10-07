@@ -6,9 +6,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
 from ..db.users import get_user
-from ..db.reminders import get_reminders, add_reminder
+from ..db.reminders import get_reminders, add_reminder, remove_reminder
 
-from ..keyboards.inline import reminders_keyboard, reminder_mode_keyboard
+from ..keyboards.inline import reminders_keyboard, reminder_mode_keyboard, reminder_delete_keyboard
 from ..keyboards.reply import cancel_keyboard
 
 
@@ -143,4 +143,35 @@ async def create_reminder(message: Message, state: FSMContext):
     await message.answer(
         "Напоминание сохранено",
         reply_markup=ReplyKeyboardRemove(),
+    )
+
+
+@router.callback_query(F.data == "remove_reminder")
+async def remove_reminder_button(callback: CallbackQuery):
+    await callback.answer()
+
+    reminders = await get_reminders(callback.from_user.id)
+    if reminders == []:
+        await callback.message.answer("Список напоминаний пуст")
+        return
+
+    await callback.message.answer(
+        "Выбери напоминание для удаления",
+        reply_markup=reminder_delete_keyboard(reminders),
+    )
+
+
+@router.callback_query(F.data.startswith("reminder_delete:"))
+async def delete_reminder_handler(callback: CallbackQuery, state: FSMContext):
+    try:
+        reminder_id = int(callback.data.split(":", 1)[1])
+    except (ValueError, IndexError):
+        await callback.answer("Некорректный выбор")
+        return
+    
+    await remove_reminder(callback.from_user.id, reminder_id)
+    await callback.answer("Напоминание удалено")
+    await callback.message.edit_text(
+        "Напоминание удалено",
+        reply_markup=reminders_keyboard(),
     )

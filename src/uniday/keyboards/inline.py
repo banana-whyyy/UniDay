@@ -50,3 +50,17 @@ def reminder_mode_keyboard():
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
+
+
+def reminder_delete_keyboard(reminders):
+    buttons = []
+    for reminder in reminders:
+        buttons.append([
+            InlineKeyboardButton(
+                text=reminder["text"],
+                callback_data=f"reminder_delete:{reminder['id']}",
+            )
+        ])
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
