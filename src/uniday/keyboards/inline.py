@@ -43,6 +43,17 @@ def reminders_keyboard():
     return keyboard
 
 
+def reminder_action_keyboard():
+    buttons = [
+        [InlineKeyboardButton(text="Свой текст", callback_data="reminder_action:text")],
+        [InlineKeyboardButton(text="Расписание на сегодня", callback_data="reminder_action:schedule_today")],
+        [InlineKeyboardButton(text="Расписание на завтра", callback_data="reminder_action:schedule_tomorrow")],
+        [InlineKeyboardButton(text="Расписание на неделю", callback_data="reminder_action:schedule_week")],
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
 def reminder_mode_keyboard():
     buttons = [
         [InlineKeyboardButton(text="В указанное время", callback_data="reminder_mode:fixed")],
@@ -53,11 +64,21 @@ def reminder_mode_keyboard():
 
 
 def reminder_delete_keyboard(reminders):
+    action_titles = {
+        "schedule_today": "Расписание на сегодня",
+        "schedule_tomorrow": "Расписание на завтра",
+        "schedule_week": "Расписание на неделю",
+    }
     buttons = []
     for reminder in reminders:
+        if reminder["action"] == "text":
+            title = reminder["text"]
+        else:
+            title = action_titles[reminder["action"]]
+
         buttons.append([
             InlineKeyboardButton(
-                text=reminder["text"],
+                text=title,
                 callback_data=f"reminder_delete:{reminder['id']}",
             )
         ])

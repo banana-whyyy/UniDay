@@ -8,7 +8,7 @@ from aiogram.fsm.state import State, StatesGroup
 from ..db.users import get_user
 from ..db.reminders import get_reminders, add_reminder, remove_reminder
 
-from ..keyboards.inline import reminders_keyboard, reminder_mode_keyboard, reminder_delete_keyboard
+from ..keyboards.inline import reminders_keyboard, reminder_mode_keyboard, reminder_delete_keyboard, reminder_action_keyboard
 from ..keyboards.reply import cancel_keyboard
 
 
@@ -29,6 +29,12 @@ async def command_reminders(message: Message):
         return
 
 
+    action_titles = {
+        "schedule_today": "Расписание на сегодня",
+        "schedule_tomorrow": "Расписание на завтра",
+        "schedule_week": "Расписание на неделю",
+    }
+    
     blocks = []
     for reminder in reminders:
         status = "✅" if reminder["is_enabled"] else "⏸"
@@ -39,7 +45,12 @@ async def command_reminders(message: Message):
         else:
             timing = f"За {reminder['offset_minutes']} минут до первой пары"
 
-        blocks.append(f"{status} {reminder['text']}\n{timing}")
+        if reminder["action"] == "text":
+            title = reminder["text"]
+        else:
+            title = action_titles[reminder["action"]]
+
+        blocks.append(f"{status} {title}\n{timing}")
 
     data = "Напоминания:\n\n" + "\n\n".join(blocks)
 
@@ -47,6 +58,7 @@ async def command_reminders(message: Message):
 
 
 class ReminderForm(StatesGroup):
+    action = State()
     text = State()
     mode = State()
     time = State()
@@ -61,8 +73,35 @@ async def add_reminder_button(callback: CallbackQuery, state: FSMContext):
         await callback.message.answer("Сначала укажи группу и подгруппу через /start")
         return
 
-    await state.set_state(ReminderForm.text)
-    await callback.message.answer("Введи текст напоминания", reply_markup=cancel_keyboard())
+    await state.set_state(ReminderForm.action)
+    await callback.message.answer("Выбери действие", reply_markup=reminder_action_keyboard())
+
+
+@router.callback_query(ReminderForm.action, F.data.startswith("reminder_action:"))
+async def choose_action_reminder(callback: CallbackQuery, state: FSMContext):
+    action = callback.data.split(":", 1)[1]
+
+    if action not in {
+        "text",
+        "schedule_today",
+        "schedule_tomorrow",
+        "schedule_week",
+    }:
+        await callback.answer("Некорректное действие")
+        return
+
+    await callback.answer()
+    await state.update_data(action=action)
+    await callback.message.edit_reply_markup(reply_markup=None)
+
+    if action == "text":
+        await state.set_state(ReminderForm.text)
+        await callback.message.answer("Введи текст напоминания", reply_markup=cancel_keyboard())
+    else:
+        await state.update_data(text="")
+        await state.set_state(ReminderForm.mode)
+        await callback.message.answer("Когда напомнить?", reply_markup=reminder_mode_keyboard())
+
 
 
 @router.message(ReminderForm(), F.text == "Отмена")
@@ -98,10 +137,10 @@ async def receive_time_reminder(callback: CallbackQuery, state: FSMContext):
     await state.set_state(ReminderForm.time)
     await callback.message.edit_reply_markup(reply_markup=None)
     if mode == "fixed":
-        await callback.message.answer("Введи время по Москве в формате ЧЧ:ММ\nНапример 12:20")
+        await callback.message.answer("Введи время по Москве в формате ЧЧ:ММ\nНапример 12:20", reply_markup=cancel_keyboard())
     
     else:
-        await callback.message.answer("За сколько минут до первой пары напомнить?\nНапример, 90")
+        await callback.message.answer("За сколько минут до первой пары напомнить?\nНапример, 90", reply_markup=cancel_keyboard())
 
 
 @router.message(ReminderForm.time, F.text)
@@ -136,7 +175,14 @@ async def create_reminder(message: Message, state: FSMContext):
 
         time_minutes = None
     
-    await add_reminder(message.from_user.id, data["text"], data["mode"], time_minutes, offset_minutes)
+    await add_reminder(
+        telegram_id=message.from_user.id,
+        text=data["text"],
+        mode=data["mode"],
+        action=data["action"],
+        time_minutes=time_minutes,
+        offset_minutes=offset_minutes,
+    )
     
     await state.clear()
 

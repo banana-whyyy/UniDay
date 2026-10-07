@@ -38,6 +38,10 @@ async def init_db():
                     is_enabled INTEGER NOT NULL DEFAULT 1 CHECK (
                         is_enabled IN (0, 1)
                     ),
+                    action TEXT NOT NULL DEFAULT 'text' CHECK
+                        (
+                            action IN ('text', 'schedule_today', 'schedule_tomorrow', 'schedule_week')
+                        )
                     CHECK (
                         (
                             mode = 'fixed'
@@ -55,7 +59,7 @@ async def init_db():
                     )
                 )
         """)
-
+                
         await db.commit()
 
 

@@ -28,7 +28,7 @@ async def get_reminders(telegram_id: int):
     async with aiosqlite.connect(db_path) as db:
         db.row_factory = aiosqlite.Row
         cursor = await db.execute("""
-            SELECT id, text, mode, time_minutes, offset_minutes, is_enabled
+            SELECT id, text, action, mode, time_minutes, offset_minutes, is_enabled
             FROM reminders
             WHERE telegram_id = ?
             ORDER BY id
