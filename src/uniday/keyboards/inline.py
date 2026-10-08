@@ -85,3 +85,12 @@ def reminder_delete_keyboard(reminders):
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
+
+
+def profile_keyboard():
+    buttons = [
+        [InlineKeyboardButton(text="Изменить группу и подгруппу", callback_data="edit_profile")],
+        [InlineKeyboardButton(text="Назад", callback_data="menu")],
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard

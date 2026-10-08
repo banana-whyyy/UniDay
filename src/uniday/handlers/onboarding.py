@@ -22,6 +22,7 @@ class Registration(StatesGroup):
 
 @router.message(Command("start"))
 async def command_start(message: Message, state: FSMContext):
+    await state.clear()
     user = await get_user(message.from_user.id)
     if user is None:
         await state.set_state(Registration.waiting_for_group)
@@ -29,6 +30,7 @@ async def command_start(message: Message, state: FSMContext):
     else:
         group_name, subgroup = user
         await message.answer(f"Твоя группа — {group_name}, подгруппа — {subgroup}")
+
 
 @router.message(Registration.waiting_for_group)
 async def receive_group(message: Message, state: FSMContext):
@@ -46,6 +48,14 @@ async def receive_group(message: Message, state: FSMContext):
     
     else:
         await message.answer("Пожалуйста, отправьте группу в нормальном виде")
+
+
+@router.callback_query(F.data == "edit_profile")
+async def edit_profile_button(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await state.clear()
+    await state.set_state(Registration.waiting_for_group)
+    await callback.message.answer("Напиши группу в таком формате\nИС2-251-ОБ")
 
 
 @router.callback_query(

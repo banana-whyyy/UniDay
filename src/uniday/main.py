@@ -6,7 +6,7 @@ from contextlib import suppress
 
 from .reminders.scheduler import run_reminder_loop
 from .config import settings
-from .handlers import onboarding, schedule, blocked_lessons, reminders
+from .handlers import menu, onboarding, schedule, blocked_lessons, reminders
 from .db.users import init_db
 
 
@@ -27,6 +27,7 @@ async def main():
     dp.include_router(schedule.router)
     dp.include_router(blocked_lessons.router)
     dp.include_router(reminders.router)
+    dp.include_router(menu.router)
 
     reminder_task = asyncio.create_task(run_reminder_loop(bot))
 
