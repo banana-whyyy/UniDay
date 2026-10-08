@@ -4,8 +4,7 @@ from html import escape
 from ..db.users import get_user
 from ..db.blocked_lessons import get_blocked_lessons
 
-from .parser import parse_schedule
-from .client import fetch_schedule_html
+from .cache import get_cached_schedule
 
 
 
@@ -47,8 +46,7 @@ async def get_lessons_for_period(
     period: int,
     target_date: date,
 ) -> list[dict] | None:
-    html = await fetch_schedule_html(group, target_date)
-    days = parse_schedule(html) 
+    days = await get_cached_schedule(group, target_date)
 
     data = []
     for offset in range(period):
