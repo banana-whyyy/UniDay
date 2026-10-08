@@ -2,7 +2,9 @@ from aiogram import Bot, Dispatcher
 import asyncio
 import logging
 import sys
+from contextlib import suppress
 
+from .reminders.scheduler import run_reminder_loop
 from .config import settings
 from .handlers import onboarding, schedule, blocked_lessons, reminders
 from .db.users import init_db
@@ -26,8 +28,16 @@ async def main():
     dp.include_router(blocked_lessons.router)
     dp.include_router(reminders.router)
 
-    logger.info("Запуск polling...")
-    await dp.start_polling(bot)
+    reminder_task = asyncio.create_task(run_reminder_loop(bot))
+
+    try:
+        logger.info("Запуск polling...")
+        await dp.start_polling(bot, close_bot_session=False)
+    finally:
+        reminder_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await reminder_task
+        await bot.session.close()
 
 
 if __name__ == "__main__":
