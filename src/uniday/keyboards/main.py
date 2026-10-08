@@ -1,4 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 
 def menu_keyboard():
@@ -9,3 +10,16 @@ def menu_keyboard():
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
+
+
+def main_keyboard():
+    buttons = [
+        [
+            KeyboardButton(text="Сегодня"),
+            KeyboardButton(text="Завтра"),
+            KeyboardButton(text="Неделя"),
+        ],
+        [KeyboardButton(text="Меню")],
+    ]
+    keyboard = ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True)
+    return keyboard 

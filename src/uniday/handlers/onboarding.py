@@ -4,8 +4,9 @@ from aiogram.types import Message, CallbackQuery
 
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-
 import re
+
+from ..keyboards.main import main_keyboard
 from ..keyboards.inline import choose_subgroup_keyboard
 from ..db.users import save_user, get_user
 
@@ -73,6 +74,10 @@ async def receive_subgroup(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
     await state.clear()
+    await callback.message.answer(
+        "Выбери действие",
+        reply_markup=main_keyboard(),
+    )
 
 
 def group_validator(group: str) -> bool:
