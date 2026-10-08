@@ -13,6 +13,7 @@ from ..db.blocked_lessons import get_blocked_lessons, add_blocked_lesson, remove
 from ..schedule.service import get_lessons_for_period
 from ..schedule.exceptions import ScheduleParseError
 from ..keyboards.inline import blocked_lessons_keyboard, block_titles_keyboard
+from .service import show_blocked_lessons
 
 
 router = Router()
@@ -23,23 +24,13 @@ logger = logging.getLogger(__name__)
 
 @router.message(Command("blocked"))
 async def command_blocked(message: Message):
-    user = await get_user(message.from_user.id)
-    if user is None:
-        await message.answer("Сначала укажи группу и подгруппу через /start")
-        return
+    await show_blocked_lessons(message, message.from_user.id)
 
-    lessons = await get_blocked_lessons(message.from_user.id)
 
-    if lessons == []:
-        await message.answer(
-            "Список исключенных пар пуст",
-            reply_markup=blocked_lessons_keyboard(),
-        )
-        return
-
-    data = "Заблокированные пары:\n\n" + "\n\n".join(lessons)
-
-    await message.answer(data, reply_markup=blocked_lessons_keyboard())
+@router.callback_query(F.data == "blocked")
+async def show_blocked_callback(callback: CallbackQuery):
+    await callback.answer()
+    await show_blocked_lessons(callback.message, callback.from_user.id)
 
 
 

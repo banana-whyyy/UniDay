@@ -7,6 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 from ..db.users import get_user
 from ..db.reminders import get_reminders, add_reminder, remove_reminder
+from .service import show_reminders
 
 from ..keyboards.inline import reminders_keyboard, reminder_mode_keyboard, reminder_delete_keyboard, reminder_action_keyboard
 from ..keyboards.reply import cancel_keyboard
@@ -17,44 +18,13 @@ router = Router()
 
 @router.message(Command("reminders"))
 async def command_reminders(message: Message):
-    user = await get_user(message.from_user.id)
-    if user is None:
-        await message.answer("Сначала укажи группу и подгруппу через /start")
-        return
-
-    reminders = await get_reminders(message.from_user.id)
-
-    if reminders == []:
-        await message.answer("Напоминаний пока нет", reply_markup=reminders_keyboard())
-        return
+    await show_reminders(message, message.from_user.id)
 
 
-    action_titles = {
-        "schedule_today": "Расписание на сегодня",
-        "schedule_tomorrow": "Расписание на завтра",
-        "schedule_week": "Расписание на неделю",
-    }
-    
-    blocks = []
-    for reminder in reminders:
-        status = "✅" if reminder["is_enabled"] else "⏸"
-
-        if reminder["mode"] == "fixed":
-            hours, minutes = divmod(reminder["time_minutes"], 60)
-            timing = f"В {hours:02d}:{minutes:02d} по Москве"
-        else:
-            timing = f"За {reminder['offset_minutes']} минут до первой пары"
-
-        if reminder["action"] == "text":
-            title = reminder["text"]
-        else:
-            title = action_titles[reminder["action"]]
-
-        blocks.append(f"{status} {title}\n{timing}")
-
-    data = "Напоминания:\n\n" + "\n\n".join(blocks)
-
-    await message.answer(data, reply_markup=reminders_keyboard())
+@router.callback_query(F.data == "reminders")
+async def show_reminders_callback(callback: CallbackQuery):
+    await callback.answer()
+    await show_reminders(callback.message, callback.from_user.id)
 
 
 class ReminderForm(StatesGroup):
