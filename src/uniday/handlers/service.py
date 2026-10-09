@@ -68,4 +68,4 @@ async def show_reminders(message: Message, telegram_id: int, edit: False):
     data = "🔔 Напоминания:\n\n" + "\n\n".join(blocks)
 
     send = message.edit_text if edit else message.answer
-    await send(data, reply_markup=blocked_lessons_keyboard())
+    await send(data, reply_markup=reminders_keyboard())
