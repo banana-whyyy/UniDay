@@ -30,7 +30,7 @@ async def command_blocked(message: Message):
 @router.callback_query(F.data == "blocked")
 async def show_blocked_callback(callback: CallbackQuery):
     await callback.answer()
-    await show_blocked_lessons(callback.message, callback.from_user.id)
+    await show_blocked_lessons(callback.message, callback.from_user.id, edit=True)
 
 
 

@@ -21,16 +21,16 @@ async def show_profile_callback(callback: CallbackQuery):
 
     group, subgroup = user
 
-    await callback.message.answer(f"👤Твоя группа - {group}\nПодгруппа - {subgroup}", reply_markup=profile_keyboard())
+    await callback.message.edit_text(f"👤 Профиль\n\nТвоя группа: {group}\nПодгруппа: {subgroup}", reply_markup=profile_keyboard())
 
 
 @router.message(Command("menu"))
-@router.message(F.text.in_({"Меню", "меню"}))
+@router.message(F.text.in_({"Меню", "🧭 Меню"}))
 async def menu_command(message: Message):
-    await message.answer("⭐️Меню", reply_markup=menu_keyboard())
+    await message.answer("🧭 Меню\nНастрой расписание и напоминания под себя.", reply_markup=menu_keyboard())
 
 
 @router.callback_query(F.data == "menu")
 async def menu_callback(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text("⭐️Меню", reply_markup=menu_keyboard())
+    await callback.message.edit_text("🧭 Меню\n\nНастрой расписание и напоминания под себя.", reply_markup=menu_keyboard())

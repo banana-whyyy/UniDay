@@ -7,7 +7,7 @@ from ..keyboards.inline import blocked_lessons_keyboard, reminders_keyboard
 from ..db.reminders import get_reminders
 
 
-async def show_blocked_lessons(message: Message, telegram_id: int):
+async def show_blocked_lessons(message: Message, telegram_id: int, edit: bool = False):
     user = await get_user(telegram_id)
     if user is None:
         await message.answer("Сначала укажи группу и подгруппу через /start")
@@ -17,17 +17,19 @@ async def show_blocked_lessons(message: Message, telegram_id: int):
 
     if not lessons:
         await message.answer(
-            "Список исключенных пар пуст",
+            "🚫 Исключённые занятия\n\nПока ничего не исключено.",
             reply_markup=blocked_lessons_keyboard(),
         )
         return
 
-    data = "Заблокированные пары:\n\n" + "\n\n".join(lessons)
+    data = "🚫 Исключённые занятия\n\n" + "\n\n".join(
+        f"• {lesson}" for lesson in lessons
+    )
+    send = message.edit_text if edit else message.answer
+    await send(data, reply_markup=blocked_lessons_keyboard())
 
-    await message.answer(data, reply_markup=blocked_lessons_keyboard())
 
-
-async def show_reminders(message: Message, telegram_id: int):
+async def show_reminders(message: Message, telegram_id: int, edit: False):
     user = await get_user(telegram_id)
     if user is None:
         await message.answer("Сначала укажи группу и подгруппу через /start")
@@ -36,7 +38,7 @@ async def show_reminders(message: Message, telegram_id: int):
     reminders = await get_reminders(telegram_id)
 
     if reminders == []:
-        await message.answer("Напоминаний пока нет", reply_markup=reminders_keyboard())
+        await message.answer("🔔 Напоминания\n\nНапоминаний пока нет.", reply_markup=reminders_keyboard())
         return
 
 
@@ -63,6 +65,7 @@ async def show_reminders(message: Message, telegram_id: int):
 
         blocks.append(f"{status} {title}\n{timing}")
 
-    data = "Напоминания:\n\n" + "\n\n".join(blocks)
+    data = "🔔 Напоминания:\n\n" + "\n\n".join(blocks)
 
-    await message.answer(data, reply_markup=reminders_keyboard())
+    send = message.edit_text if edit else message.answer
+    await send(data, reply_markup=blocked_lessons_keyboard())

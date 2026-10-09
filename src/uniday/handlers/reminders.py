@@ -23,7 +23,7 @@ async def command_reminders(message: Message):
 @router.callback_query(F.data == "reminders")
 async def show_reminders_callback(callback: CallbackQuery):
     await callback.answer()
-    await show_reminders(callback.message, callback.from_user.id)
+    await show_reminders(callback.message, callback.from_user.id, edit=True)
 
 
 class ReminderForm(StatesGroup):

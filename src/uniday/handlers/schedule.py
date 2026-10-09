@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.message(Command("today"))
-@router.message(F.text.in_({"Сегодня", "сегодня"}))
+@router.message(F.text.in_({"Сегодня", "📅 Сегодня"}))
 async def command_today(message: Message):
     moscow_tz = timezone(timedelta(hours=3))
     today = datetime.now(moscow_tz).date()
@@ -48,7 +48,7 @@ async def command_today(message: Message):
 
 
 @router.message(Command("tomorrow"))
-@router.message(F.text.in_({"Завтра", "завтра"}))
+@router.message(F.text.in_({"Завтра", "➡️ Завтра"}))
 async def command_tomorrow(message: Message):
     moscow_tz = timezone(timedelta(hours=3))
     tomorrow = datetime.now(moscow_tz).date() + timedelta(days=1)
@@ -79,7 +79,7 @@ async def command_tomorrow(message: Message):
 
 
 @router.message(Command("week"))
-@router.message(F.text.in_({"Неделя", "Неделя"}))
+@router.message(F.text.in_({"Неделя", "☀️ Неделя"}))
 async def command_week(message: Message):
     moscow_tz = timezone(timedelta(hours=3))
     today = datetime.now(moscow_tz).date()

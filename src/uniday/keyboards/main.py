@@ -15,11 +15,11 @@ def menu_keyboard():
 def main_keyboard():
     buttons = [
         [
-            KeyboardButton(text="Сегодня"),
-            KeyboardButton(text="Завтра"),
-            KeyboardButton(text="Неделя"),
+            KeyboardButton(text="📅 Сегодня"),
+            KeyboardButton(text="➡️ Завтра"),
+            KeyboardButton(text="☀️ Неделя"),
         ],
-        [KeyboardButton(text="Меню")],
+        [KeyboardButton(text="🧭 Меню")],
     ]
     keyboard = ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True)
     return keyboard 
