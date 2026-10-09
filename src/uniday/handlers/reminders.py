@@ -9,8 +9,7 @@ from ..db.users import get_user
 from ..db.reminders import get_reminders, add_reminder, remove_reminder
 from .service import show_reminders
 
-from ..keyboards.inline import reminders_keyboard, reminder_mode_keyboard, reminder_delete_keyboard, reminder_action_keyboard
-from ..keyboards.reply import cancel_keyboard
+from ..keyboards.inline import reminders_keyboard, reminder_mode_keyboard, reminder_delete_keyboard, reminder_action_keyboard, cancel_inline_keyboard
 
 
 router = Router()
@@ -43,9 +42,13 @@ async def add_reminder_button(callback: CallbackQuery, state: FSMContext):
         await callback.message.answer("Сначала укажи группу и подгруппу через /start")
         return
 
+    await state.clear()
     await state.set_state(ReminderForm.action)
-    await callback.message.answer("Выбери действие", reply_markup=reminder_action_keyboard())
-
+    await state.update_data(form_message_id=callback.message.message_id)
+    await callback.message.edit_text(
+        "Выбери действие",
+        reply_markup=reminder_action_keyboard(),
+    )
 
 @router.callback_query(ReminderForm.action, F.data.startswith("reminder_action:"))
 async def choose_action_reminder(callback: CallbackQuery, state: FSMContext):
@@ -62,22 +65,14 @@ async def choose_action_reminder(callback: CallbackQuery, state: FSMContext):
 
     await callback.answer()
     await state.update_data(action=action)
-    await callback.message.edit_reply_markup(reply_markup=None)
 
     if action == "text":
         await state.set_state(ReminderForm.text)
-        await callback.message.answer("Введи текст напоминания", reply_markup=cancel_keyboard())
+        await callback.message.edit_text("Введи текст напоминания", reply_markup=cancel_inline_keyboard())
     else:
         await state.update_data(text="")
         await state.set_state(ReminderForm.mode)
-        await callback.message.answer("Когда напомнить?", reply_markup=reminder_mode_keyboard())
-
-
-
-@router.message(ReminderForm(), F.text == "Отмена")
-async def cancel_reminder(message: Message, state: FSMContext):
-    await state.clear()
-    await message.answer("Создание напоминания отменено", reply_markup=ReplyKeyboardRemove())
+        await callback.message.edit_text("Когда напомнить?", reply_markup=reminder_mode_keyboard())
 
 
 @router.message(ReminderForm.text, F.text)
@@ -105,12 +100,11 @@ async def receive_time_reminder(callback: CallbackQuery, state: FSMContext):
     await state.update_data(mode=mode)
 
     await state.set_state(ReminderForm.time)
-    await callback.message.edit_reply_markup(reply_markup=None)
     if mode == "fixed":
-        await callback.message.answer("Введи время по Москве в формате ЧЧ:ММ\nНапример 12:20", reply_markup=cancel_keyboard())
+        await callback.message.edit_text("Введи время по Москве в формате ЧЧ:ММ\nНапример 12:20", reply_markup=cancel_inline_keyboard())
     
     else:
-        await callback.message.answer("За сколько минут до первой пары напомнить?\nНапример, 90", reply_markup=cancel_keyboard())
+        await callback.message.edit_text("За сколько минут до первой пары напомнить?\nНапример, 90", reply_markup=cancel_inline_keyboard())
 
 
 @router.message(ReminderForm.time, F.text)
@@ -168,10 +162,10 @@ async def remove_reminder_button(callback: CallbackQuery):
 
     reminders = await get_reminders(callback.from_user.id)
     if reminders == []:
-        await callback.message.answer("Список напоминаний пуст")
+        await callback.message.edit_text("Список напоминаний пуст", reply_markup=reminders_keyboard())
         return
 
-    await callback.message.answer(
+    await callback.message.edit_text(
         "Выбери напоминание для удаления",
         reply_markup=reminder_delete_keyboard(reminders),
     )
@@ -191,3 +185,10 @@ async def delete_reminder_handler(callback: CallbackQuery, state: FSMContext):
         "Напоминание удалено",
         reply_markup=reminders_keyboard(),
     )
+
+
+@router.callback_query(ReminderForm(), F.data == "cancel_reminder")
+async def cancel_button(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await state.clear()
+    await callback.message.edit_text("Создание напоминания отменено", reply_markup=reminders_keyboard())

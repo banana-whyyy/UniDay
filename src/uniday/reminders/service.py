@@ -109,7 +109,7 @@ async def check_reminders(bot: Bot):
 
             if timedelta(0) <= delay <= timedelta(minutes=1):
                 message = await build_reminder_message(reminder, target_date)
-                await bot.send_message(reminder["telegram_id"], message)
+                await bot.send_message(reminder["telegram_id"], message, parse_mode="HTML")
                 await mark_reminder_sent(reminder["id"], target_date)
 
         except Exception:

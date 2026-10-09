@@ -94,3 +94,11 @@ def profile_keyboard():
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
+
+
+def cancel_inline_keyboard():
+    buttons = [
+        [InlineKeyboardButton(text="Отмена", callback_data="cancel_reminder")]
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
