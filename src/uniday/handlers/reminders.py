@@ -150,10 +150,7 @@ async def create_reminder(message: Message, state: FSMContext):
     
     await state.clear()
 
-    await message.answer(
-        "Напоминание сохранено",
-        reply_markup=ReplyKeyboardRemove(),
-    )
+    await message.answer("✅ Напоминание сохранено")
 
 
 @router.callback_query(F.data == "remove_reminder")
