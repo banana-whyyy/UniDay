@@ -73,7 +73,7 @@ async def get_reminder_datetime(
     elif reminder["mode"] == "before_first_lesson":
         start_times = []
         for lesson in lessons:
-            start_text = lesson["time"].split("–", 1)[0].strip()
+            start_text = lesson["time"].replace("–", "-").replace("—", "-").split("-", 1)[0].strip()
             start_time = datetime.strptime(start_text, "%H:%M").time()
             start_times.append(start_time)
 
